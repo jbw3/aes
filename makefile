@@ -3,11 +3,11 @@
 #INCLUDES = -I<include path>
 OBJDIR = obj
 
-CXX = clang++
-CXXFLAGS = -std=c++1z -stdlib=libc++ #$(INCLUDES)
+CXX = g++
+CXXFLAGS = -std=c++1z #-stdlib=libc++ #$(INCLUDES)
 
 #LDLIBS = -L<lib path> -l<lib name>
-LDFLAGS = -stdlib=libc++ #$(LDLIBS)
+LDFLAGS = #-stdlib=libc++ #$(LDLIBS)
 
 # DEPS = X.h
 
