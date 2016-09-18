@@ -76,28 +76,25 @@ uint32_t keyRCon(int round)
     return RCON[round - 1];
 }
 
-void keyExpansion(const uint32_t* inKey, uint32_t* outKey)
+void keyExpansion(const uint32_t* key, uint32_t* w)
 {
     // copy first 4 words to expanded key
     for (uint i = 0; i < 4; ++i)
     {
-        outKey[i] = inKey[i];
+        w[i] = key[i];
     }
 
     for (uint i = 4; i < 44; ++i)
     {
-        uint32_t temp = inKey[i - 1];
+        uint32_t temp = w[i - 1];
         if (i % 4 == 0)
         {
             temp = keyRotWord(temp);
-            std::cout << temp << '\n';
             temp = keySubWord(temp);
-            std::cout << temp << '\n';
             temp ^= keyRCon(i / 4);
-            std::cout << temp << '\n' << '\n';
         }
 
-        outKey[i] = inKey[i - 4] ^ temp;
+        w[i] = w[i - 4] ^ temp;
     }
 }
 
