@@ -98,16 +98,8 @@ void keyExpansion(const uint32_t* key, uint32_t* w)
     }
 }
 
-int main()
+void printKeyExpansion(const uint32_t* expKey)
 {
-    std::cout << std::hex;
-
-    // uint32_t key[4] = {0xFEDCBA98, 0x76543210, 0x01234567, 0x89ABCDEF};
-    uint32_t key[4] = {0x0f1571c9, 0x47d9e859, 0x0cb7add6, 0xaf7f6798};
-    uint32_t expKey[44];
-
-    keyExpansion(key, expKey);
-
     for (int i = 0; i < 44; i += 4)
     {
         for (int j = 0; j < 4; j++)
@@ -117,6 +109,73 @@ int main()
         }
         std::cout << '\n';
     }
+}
+
+void printData(const uint8_t* data)
+{
+    for (uint i = 0; i < 16; ++i)
+    {
+        std::cout << std::setw(2) << std::setfill('0') << static_cast<uint>(data[i]);
+    }
+    std::cout << '\n';
+}
+
+void substBytes()
+{
+}
+
+void shiftRows()
+{
+}
+
+void mixCols()
+{
+}
+
+void addRoundKey(const uint32_t* key, uint8_t* data)
+{
+    for (uint i = 0; i < 16; ++i)
+    {
+        uint8_t keyByte = key[i / 4] >> ((3 - (i % 4)) * 8);
+        data[i] ^= keyByte;
+    }
+}
+
+void aesRound(const uint32_t* key, uint8_t* data)
+{
+    substBytes();
+    shiftRows();
+    mixCols();
+    addRoundKey(key, data);
+}
+
+void aes(const uint32_t* key, uint8_t* data)
+{
+    uint32_t expKey[44];
+    keyExpansion(key, expKey);
+
+    addRoundKey(&expKey[0], data);
+    printData(data);
+    for (uint round = 1; round <= 10; ++round)
+    {
+        const uint32_t* roundKey = &expKey[round * 4];
+        aesRound(roundKey, data);
+        printData(data);
+    }
+}
+
+int main()
+{
+    std::cout << std::hex;
+
+    // uint32_t key[4] = {0xFEDCBA98, 0x76543210, 0x01234567, 0x89ABCDEF};
+    uint32_t key[4] = {0x0f1571c9, 0x47d9e859, 0x0cb7add6, 0xaf7f6798};
+    uint8_t data[16] = {
+        0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+        0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10,
+    };
+
+    aes(key, data);
 
     return 0;
 }
