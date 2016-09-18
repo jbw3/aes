@@ -62,16 +62,16 @@ uint32_t keySubWord(uint32_t w)
 uint32_t keyRCon(int round)
 {
     static const uint32_t RCON[] = {
-        0x01,
-        0x02,
-        0x04,
-        0x08,
-        0x10,
-        0x20,
-        0x40,
-        0x80,
-        0x1B,
-        0x36
+        0x01000000,
+        0x02000000,
+        0x04000000,
+        0x08000000,
+        0x10000000,
+        0x20000000,
+        0x40000000,
+        0x80000000,
+        0x1B000000,
+        0x36000000
     };
     return RCON[round - 1];
 }
@@ -89,7 +89,12 @@ void keyExpansion(const uint32_t* inKey, uint32_t* outKey)
         uint32_t temp = inKey[i - 1];
         if (i % 4 == 0)
         {
-            temp = keySubWord(keyRotWord(temp)) ^ keyRCon(i / 4);
+            temp = keyRotWord(temp);
+            std::cout << temp << '\n';
+            temp = keySubWord(temp);
+            std::cout << temp << '\n';
+            temp ^= keyRCon(i / 4);
+            std::cout << temp << '\n' << '\n';
         }
 
         outKey[i] = inKey[i - 4] ^ temp;
@@ -98,12 +103,14 @@ void keyExpansion(const uint32_t* inKey, uint32_t* outKey)
 
 int main()
 {
-    uint32_t key[4] = {0xFEDCBA98, 0x76543210, 0x01234567, 0x89ABCDEF};
+    std::cout << std::hex;
+
+    // uint32_t key[4] = {0xFEDCBA98, 0x76543210, 0x01234567, 0x89ABCDEF};
+    uint32_t key[4] = {0x0f1571c9, 0x47d9e859, 0x0cb7add6, 0xaf7f6798};
     uint32_t expKey[44];
 
     keyExpansion(key, expKey);
 
-    std::cout << std::hex;
     for (int i = 0; i < 44; i += 4)
     {
         for (int j = 0; j < 4; j++)
