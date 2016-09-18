@@ -8,6 +8,7 @@
 #include <cstdint>
 
 using std::uint32_t;
+typedef unsigned int uint;
 
 const uint8_t S_BOX[] = {
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
@@ -28,6 +29,13 @@ const uint8_t S_BOX[] = {
     0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16,
 };
 
+uint8_t sBoxSub(uint8_t b)
+{
+    int row = b >> 4;
+    int col = b & 0x0F;
+    return S_BOX[row * 16 + col];
+}
+
 uint32_t keyRotWord(uint32_t w)
 {
     return (w << 8) | (w >> 24);
@@ -35,9 +43,22 @@ uint32_t keyRotWord(uint32_t w)
 
 uint32_t keySubWord(uint32_t w)
 {
-    return w;
+    uint32_t out = 0;
+
+    for (uint i = 0; i < sizeof(uint32_t); ++i)
+    {
+        uint8_t b = w >> (i * 8);
+        uint32_t temp = sBoxSub(b);
+        temp <<= i * 8;
+        out |= temp;
+    }
+
+    return out;
 }
 
+/**
+ * @param round 1 - 10]
+ */
 uint32_t keyRCon(int round)
 {
     static const uint32_t RCON[] = {
@@ -52,23 +73,23 @@ uint32_t keyRCon(int round)
         0x1B,
         0x36
     };
-    return RCON[round];
+    return RCON[round - 1];
 }
 
 void keyExpansion(const uint32_t* inKey, uint32_t* outKey)
 {
     // copy first 4 words to expanded key
-    for (int i = 0; i < 4; ++i)
+    for (uint i = 0; i < 4; ++i)
     {
         outKey[i] = inKey[i];
     }
 
-    for (int i = 4; i < 44; ++i)
+    for (uint i = 4; i < 44; ++i)
     {
         uint32_t temp = inKey[i - 1];
         if (i % 4 == 0)
         {
-            // TODO
+            temp = keySubWord(keyRotWord(temp)) ^ keyRCon(i / 4);
         }
 
         outKey[i] = inKey[i - 4] ^ temp;
