@@ -10,6 +10,8 @@
 using std::uint32_t;
 typedef unsigned int uint;
 
+constexpr uint DATA_SIZE = 16;
+
 const uint8_t S_BOX[] = {
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
     0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
@@ -113,22 +115,46 @@ void printKeyExpansion(const uint32_t* expKey)
 
 void printData(const uint8_t* data)
 {
-    for (uint i = 0; i < 16; ++i)
+    for (uint i = 0; i < DATA_SIZE; ++i)
     {
         std::cout << std::setw(2) << std::setfill('0') << static_cast<uint>(data[i]);
     }
     std::cout << '\n';
 }
 
-void substBytes()
+void subBytes(uint8_t* data)
 {
+    for (uint i = 0; i < DATA_SIZE; ++i)
+    {
+        data[i] = sBoxSub(data[i]);
+    }
 }
 
-void shiftRows()
+void shiftRows(uint8_t* data)
 {
+    uint8_t temp1, temp2;
+
+    temp1 = data[4];
+    data[4] = data[5];
+    data[5] = data[6];
+    data[6] = data[7];
+    data[7] = temp1;
+
+    temp1 = data[8];
+    temp2 = data[9];
+    data[ 8] = data[10];
+    data[ 9] = data[11];
+    data[10] = temp1;
+    data[11] = temp2;
+
+    temp1 = data[15];
+    data[15] = data[14];
+    data[14] = data[13];
+    data[13] = data[12];
+    data[12] = temp1;
 }
 
-void mixCols()
+void mixCols(uint8_t* data)
 {
 }
 
@@ -143,9 +169,9 @@ void addRoundKey(const uint32_t* key, uint8_t* data)
 
 void aesRound(const uint32_t* key, uint8_t* data)
 {
-    substBytes();
-    shiftRows();
-    mixCols();
+    subBytes(data);
+    shiftRows(data);
+    mixCols(data);
     addRoundKey(key, data);
 }
 
@@ -170,7 +196,7 @@ int main()
 
     // uint32_t key[4] = {0xFEDCBA98, 0x76543210, 0x01234567, 0x89ABCDEF};
     uint32_t key[4] = {0x0f1571c9, 0x47d9e859, 0x0cb7add6, 0xaf7f6798};
-    uint8_t data[16] = {
+    uint8_t data[DATA_SIZE] = {
         0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
         0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10,
     };
