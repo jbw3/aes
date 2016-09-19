@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <iostream>
 #include <cstdint>
+#include <cstring>
 
 using std::uint32_t;
 typedef unsigned int uint;
@@ -154,8 +155,33 @@ void shiftRows(uint8_t* data)
     data[12] = temp1;
 }
 
+uint8_t times2(uint8_t n)
+{
+    uint8_t a = n << 1;
+    if ((n & 0x80) != 0)
+    {
+        a ^= 0x1b;
+    }
+    return a;
+}
+
+uint8_t times3(uint8_t n)
+{
+    return n ^ times2(n);
+}
+
 void mixCols(uint8_t* data)
 {
+    uint8_t copy[DATA_SIZE];
+    std::memcpy(copy, data, DATA_SIZE);
+
+    for (uint c = 0; c < 4; ++c)
+    {
+        data[c] = times2(copy[c]) ^ times3(copy[4 + c]) ^ copy[8 + c] ^ copy[12 + c];
+        data[4 + c] = copy[c] ^ times2(copy[4 + c]) ^ times3(copy[8 + c]) ^ copy[12 + c];
+        data[8 + c] = copy[c] ^ copy[4 + c] ^ times2(copy[8 + c]) ^ times3(copy[12 + c]);
+        data[12 + c] = times3(copy[c]) ^ copy[4 + c] ^ copy[8 + c] ^ times2(copy[12 + c]);
+    }
 }
 
 void addRoundKey(const uint32_t* key, uint8_t* data)
@@ -163,16 +189,22 @@ void addRoundKey(const uint32_t* key, uint8_t* data)
     for (uint i = 0; i < 16; ++i)
     {
         uint8_t keyByte = key[i / 4] >> ((3 - (i % 4)) * 8);
-        data[i] ^= keyByte;
+        uint r = i % 4;
+        uint c = i / 4;
+        data[r * 4 + c] ^= keyByte;
     }
 }
 
 void aesRound(const uint32_t* key, uint8_t* data)
 {
     subBytes(data);
+    // printData(data);
     shiftRows(data);
+    // printData(data);
     mixCols(data);
+    // printData(data);
     addRoundKey(key, data);
+    // printData(data);
 }
 
 void aes(const uint32_t* key, uint8_t* data)
@@ -180,13 +212,21 @@ void aes(const uint32_t* key, uint8_t* data)
     uint32_t expKey[44];
     keyExpansion(key, expKey);
 
-    addRoundKey(&expKey[0], data);
-    printData(data);
+    uint8_t state[DATA_SIZE];
+    for (uint i = 0; i < DATA_SIZE; ++i)
+    {
+        uint r = i % 4;
+        uint c = i / 4;
+        state[r * 4 + c] = data[i];
+    }
+
+    addRoundKey(&expKey[0], state);
+    printData(state);
     for (uint round = 1; round <= 10; ++round)
     {
         const uint32_t* roundKey = &expKey[round * 4];
-        aesRound(roundKey, data);
-        printData(data);
+        aesRound(roundKey, state);
+        printData(state);
     }
 }
 
