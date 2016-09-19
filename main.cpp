@@ -213,7 +213,7 @@ void aesRound(uint round, const uint32_t* key, uint8_t* data)
     if (round < 10)
     {
         mixCols(data);
-        printData(data);
+        // printData(data);
     }
     addRoundKey(key, data);
 }
