@@ -207,13 +207,20 @@ void addRoundKey(const uint32_t* key, uint8_t* data)
 void aesRound(uint round, const uint32_t* key, uint8_t* data)
 {
     subBytes(data);
-    // printData(data);
+    printData(data);
     shiftRows(data);
-    // printData(data);
+    printData(data);
     if (round < 10)
     {
         mixCols(data);
-        // printData(data);
+        printData(data);
+    }
+    else
+    {
+        for (int i = 0; i < 32 + 2; ++i)
+        {
+            std::cout << " ";
+        }
     }
     addRoundKey(key, data);
 }
@@ -231,14 +238,18 @@ void aes(const uint32_t* key, uint8_t* data)
         state[r * 4 + c] = data[i];
     }
 
-    std::cout << "Round  Round Key                         Result\n"
-              << "-----  --------------------------------  --------------------------------\n";
+    std::cout << "Round  Round Key                         Substitute Bytes                  Shift Rows                        Mix Columns                       Result\n"
+              << "-----  --------------------------------  --------------------------------  --------------------------------  --------------------------------  --------------------------------\n";
 
     std::cout << "    0";
     printKey(&expKey[0]);
 
     addRoundKey(&expKey[0], state);
 
+    for (int i = 0; i < (32 + 2) * 3; ++i)
+    {
+        std::cout << " ";
+    }
     printData(state);
     std::cout << '\n';
 
@@ -261,10 +272,13 @@ int main()
     std::cout << std::hex;
 
     // uint32_t key[4] = {0xFEDCBA98, 0x76543210, 0x01234567, 0x89ABCDEF};
-    uint32_t key[4] = {0x0f1571c9, 0x47d9e859, 0x0cb7add6, 0xaf7f6798};
+    // uint32_t key[4] = {0x0f1571c9, 0x47d9e859, 0x0cb7add6, 0xaf7f6798};
+    uint32_t key[4] = {0x01234567, 0x89abcdef, 0xfedcba98, 0x76543210};
     uint8_t data[DATA_SIZE] = {
-        0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
-        0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10,
+        0x0f, 0x0e, 0x0d, 0x0c, 0x0b, 0x0a, 0x09, 0x08,
+        0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00,
+        // 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+        // 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10,
     };
 
     aes(key, data);
